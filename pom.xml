@@ -62,6 +62,12 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc11</artifactId>
+			<version>23.2.0.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
