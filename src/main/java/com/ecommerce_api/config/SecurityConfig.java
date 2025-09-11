@@ -15,7 +15,6 @@ public class SecurityConfig {
     public SecurityConfig(CustomUserDetailsService userDetailsService) {
     }
 
-    // En pruebas usamos {noop}, luego BCryptPasswordEncoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
