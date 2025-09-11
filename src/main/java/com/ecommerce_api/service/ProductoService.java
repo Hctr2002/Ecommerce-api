@@ -33,6 +33,16 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
+    public Producto actualizarProducto(Long id, Producto producto) {
+        return productoRepository.findById(id).map(p -> {
+            p.setNombre(producto.getNombre());
+            p.setDescripcion(producto.getDescripcion());
+            p.setPrecio(producto.getPrecio());
+            p.setStock(producto.getStock());
+            return productoRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + id));
+    }
+
     public void eliminarProducto(Long id) {
         productoRepository.deleteById(id);
     }

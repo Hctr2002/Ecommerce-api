@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeHttpRequests()
-                .requestMatchers("/api/productos/**").authenticated() // protege productos
+                .requestMatchers("/api/productos/**", "/api/usuarios/**").authenticated() // protege productos
                 .anyRequest().permitAll()
             .and()
             .httpBasic();

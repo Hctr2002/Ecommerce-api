@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.builder()
                 .username(usuario.getEmail())   // autenticamos con el email
-                .password(usuario.getPassword()) // debe estar encriptado o con {noop} si es texto plano
+                .password(usuario.getPassword()) 
                 .build();
     }
 }
