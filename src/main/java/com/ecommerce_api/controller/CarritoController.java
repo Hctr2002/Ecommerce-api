@@ -1,7 +1,9 @@
 package com.ecommerce_api.controller;
 
+import com.ecommerce_api.assemblers.CarritoItemModelAssembler;
 import com.ecommerce_api.assemblers.CarritoModelAssembler;
 import com.ecommerce_api.model.Carrito;
+import com.ecommerce_api.model.CarritoItem;
 import com.ecommerce_api.service.CarritoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -23,6 +25,9 @@ public class CarritoController {
 
     @Autowired
     private CarritoModelAssembler assembler;
+
+    @Autowired
+    private CarritoItemModelAssembler itemAssembler;
 
     @PostMapping
     public EntityModel<Carrito> crearCarrito(@RequestBody Carrito carrito) {
@@ -47,6 +52,23 @@ public class CarritoController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/{carritoId}/items")
+    public CollectionModel<EntityModel<CarritoItem>> obtenerItemsDeCarrito(@PathVariable Long carritoId) {
+        Carrito carrito = carritoService.obtenerCarritoPorId(carritoId)
+                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
+
+        // Convertimos los items a modelos HATEOAS
+        List<EntityModel<CarritoItem>> items = carrito.getItems().stream()
+                .map(itemAssembler::toModel)
+                .toList();
+
+        return CollectionModel.of(items,
+                linkTo(methodOn(CarritoController.class).obtenerItemsDeCarrito(carritoId)).withSelfRel(),
+                linkTo(methodOn(CarritoController.class).obtenerCarritoPorId(carritoId)).withRel("carrito")
+        );
+    }
+
 
     @PostMapping("/{carritoId}/items")
     public EntityModel<Carrito> agregarProducto(
