@@ -1,52 +1,63 @@
 package com.ecommerce_api.controller;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.ecommerce_api.service.UsuarioService;
+import com.ecommerce_api.assemblers.UsuarioModelAssembler;
 import com.ecommerce_api.model.Usuario;
+import com.ecommerce_api.service.UsuarioService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
+
     @Autowired
     private UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
+    @Autowired
+    private UsuarioModelAssembler assembler;
 
     @GetMapping
-    public List<Usuario> obtenerTodosLosUsuarios() {
-        return usuarioService.obtenerTodosLosUsuarios();
+    public CollectionModel<EntityModel<Usuario>> obtenerTodosLosUsuarios() {
+        List<EntityModel<Usuario>> usuarios = usuarioService.obtenerTodosLosUsuarios().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(usuarios,
+                linkTo(methodOn(UsuarioController.class).obtenerTodosLosUsuarios()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public Object obtenerUsuarioPorId(@PathVariable Long id) {
-        return usuarioService.obtenerUsuarioPorId(id);
+    public EntityModel<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
+        Usuario usuario = usuarioService.obtenerUsuarioPorId(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return assembler.toModel(usuario);
     }
 
     @PostMapping
-    public Object crearUsuario(@RequestBody Usuario usuario) {
-        return usuarioService.guardarUsuario(usuario);
+    public EntityModel<Usuario> crearUsuario(@RequestBody Usuario usuario) {
+        Usuario nuevoUsuario = usuarioService.guardarUsuario(usuario);
+        return assembler.toModel(nuevoUsuario);
     }
 
     @PutMapping("/{id}")
-    public Object actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        return usuarioService.actualizarUsuario(id, usuario); 
+    public ResponseEntity<EntityModel<Usuario>> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
+        Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
+        return ResponseEntity.ok(assembler.toModel(actualizado));
     }
 
     @DeleteMapping("/{id}")
-    public void eliminarUsuario(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
+        return ResponseEntity.noContent().build();
     }
-
 }
